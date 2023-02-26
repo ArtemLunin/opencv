@@ -45,12 +45,13 @@ def index():
         file = request.files['file']
         if file.filename == '':
             flash('No selected file')
-            print(request.url)
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            print(secure_filename(file.filename))
-            filename = digest_filename(secure_filename(file.filename))
-            # hashlib.md5('test string'.encode()).hexdigest()
+            secureFilename = secure_filename(file.filename)
+            filename = digest_filename(secureFilename)
+            item = Item(fileId=fileId, storedName=filename, originalName=secureFilename)
+            db.session.add(item)
+            db.session.commit()
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
     forms = [
