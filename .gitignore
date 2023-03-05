@@ -1,4 +1,4 @@
 __pycache__/
-uploads/*
+static/uploads/*
 instance
 instance/opencv.db

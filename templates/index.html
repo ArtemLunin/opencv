@@ -6,11 +6,11 @@
 {% block forms %}
     {% for form in forms %}
     <div class="upload">
-        <img src="{{ url_for('static', filename='images/' + form.image)}}" alt="{{form.file_id}}">
+        <img src="{{ url_for('static', filename='uploads/' + form.storedName)}}" alt="{{form.fileId}}">
         <form action="{{ url_for('index')}}" method="POST" enctype="multipart/form-data">
-            <input name="file_id" type="hidden" value="{{form.file_id}}">
-                <input type="file" name="file" id="{{form.file_id}}">
-                <input type="submit" value="Upload">
+            <input name="fileId" type="hidden" value="{{form.fileId}}">
+            <input type="file" name="file" id="{{form.fileId}}">
+            <input type="submit" value="Upload">
         </form>
     </div>
     {% endfor %}
