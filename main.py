@@ -4,6 +4,7 @@ from flask import Flask, flash, render_template, url_for, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError, OperationalError, IntegrityError
 from werkzeug.utils import secure_filename
+from compare import CalcImageHash, CompareHash
 
 
 UPLOAD_FOLDER = "./static/uploads"
@@ -33,6 +34,13 @@ def remove_files(dir_name):
         if os.path.isfile(file.path) or os.path.islink(file.path):
             os.remove(file.path)
 
+def compare_images(images):
+    hash1 = CalcImageHash(images[0])
+    hash2 = CalcImageHash(images[1])
+    # print(hash1)
+    # print(hash2)
+    return CompareHash(hash1, hash2)
+    # print(images)
 
 class Item(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -77,14 +85,15 @@ def index():
     if request.method == "GET":
         items = Item.query.all()
         forms = [
-            {'title': 'form1', 'storedName': 'no_image.png', 'fileId': 'file1'}, 
-            {'title': 'form2', 'storedName': 'no_image.png', 'fileId': 'file2'}
+            {'title': 'form1', 'dir': 'images', 'storedName': 'upload.png', 'fileId': 'file1'}, 
+            {'title': 'form2', 'dir': 'images', 'storedName': 'upload.png', 'fileId': 'file2'}
             ]
         i = 0
         for item in items:
             # print(item.fileId, item.storedName, item.originalName)
             forms[i]['storedName'] = item.storedName
             forms[i]['fileId'] = item.fileId
+            forms[i]['dir'] = 'uploads'
             i += 1
     return render_template('index.html', forms=forms)
 
@@ -100,6 +109,17 @@ def clear():
         flash(f"Unexpected {err=}, {type(err)=}")
     finally:
         remove_files(app.config['UPLOAD_FOLDER'])
+    return redirect(url_for('index'))
+
+@app.route("/compare")
+def compare():
+    items = Item.query.all()
+    images = []
+    for item in items:
+        images.append(os.path.join(app.config['UPLOAD_FOLDER'], item.storedName))
+
+    compare_presision = compare_images(images)
+    flash(f"Images match {compare_presision} percent")
     return redirect(url_for('index'))
 
 if __name__ == "__main__":

@@ -1,19 +1,25 @@
 {% extends 'base.html' %}
 {% block content %}
 {{ super() }}
-<h3>Files for compare</h3>
-<div class="uploads">
-{% block forms %}
-    {% for form in forms %}
-    <div class="upload">
-        <img src="{{ url_for('static', filename='uploads/' + form.storedName)}}" alt="{{form.fileId}}">
-        <form action="{{ url_for('index')}}" method="POST" enctype="multipart/form-data">
-            <input name="fileId" type="hidden" value="{{form.fileId}}">
-            <input type="file" name="file" id="{{form.fileId}}">
-            <input type="submit" value="Upload">
-        </form>
+<div class="container">
+    <h3>Select two images to compare</h3>
+    <div class="uploads">
+    {% block forms %}
+        {% for form in forms %}
+        <div class="upload">
+            <img src="{{ url_for('static', filename=form.dir + '/' + form.storedName)}}" alt="{{form.fileId}}">
+            <form action="{{ url_for('index')}}" method="POST" enctype="multipart/form-data">
+                <input name="fileId" type="hidden" value="{{form.fileId}}">
+                <input type="file" name="file" id="{{form.fileId}}">
+                <input type="submit" value="Upload">
+            </form>
+        </div>
+        {% endfor %}
+    {% endblock %}
     </div>
-    {% endfor %}
-{% endblock %}
+    <div class="buttons">
+        <a class="button_a" href="{{ url_for('clear') }}">Clear images</a>
+        <a class="button_a" href="{{ url_for('compare') }}">Compare images</a>
+    </div>
 </div>
 {% endblock %}

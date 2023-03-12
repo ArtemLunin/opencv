@@ -1,3 +1,6 @@
+* {
+	box-sizing: border-box;
+}
 html, body { 
 	font-family: 'Arial';
 	margin: 0;
@@ -5,12 +8,49 @@ html, body {
 	height: 100%;
 	width: 100%;
 }
+h3 {
+	text-align: center;
+}
+a {
+	text-decoration: none;
+}
+a:visited {
+	color: inherit;
+}
+.container {
+	width: 90%;
+	max-width: 1024px;
+	padding: 20px;
+	margin-left: auto;
+	margin-right: auto;
+}
 .uploads {
 	display: flex;
+	justify-content: space-around;
+	margin-top: 20px;
+	margin-bottom: 20px;
 }
+
 .upload img {
-	width: 300px;
-	height: 300px;
-	object-fit: none; /* Do not scale the image */
+	border-style: solid;
+	padding: 10px;
+	width: 400px;
+	height: 400px;
+	/* Do not scale the image */
+	object-fit: cover; 
   	object-position: center; /* Center the image within the element */
+}
+.buttons {
+	display: flex;
+	justify-content: center;
+}
+.button_a {
+	padding: 10px;
+	margin-left: 5px;
+	margin-right: 5px;
+	background: lightblue;
+	border-radius: 10px;
+	border-style: solid;
+	border-width: 1px;
+	/* text-decoration: none; */
 }
