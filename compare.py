@@ -1,4 +1,5 @@
 import cv2
+from PIL import Image, ImageChops, ImageStat, ImageFilter
 #import difflib
 
 #Функция вычисления хэша
@@ -29,4 +30,19 @@ def CompareHash(hash1,hash2):
         if hash1[i] != hash2[i]:
             count = count+1
         i = i+1
-    return round((1 - count/l) * 100)
+    return count
+
+
+def CompareIimages(images):
+    image1 = Image.open(images[0]).convert("L").filter(ImageFilter.DETAIL)
+    image2 = Image.open(images[1]).convert("L").filter(ImageFilter.DETAIL)
+    print(image1.mode)
+    print(image2.mode)
+    result = ImageChops.difference(image1, image2)
+    image1.show('image1')
+    image2.show('image2')
+    result.show()
+    # print(result.getbbox())
+    stat = ImageStat.Stat(result)
+    diff_ratio = sum(stat.mean) / (len(stat.mean) * 255)
+    return diff_ratio * 100

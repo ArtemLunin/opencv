@@ -7,6 +7,7 @@
     {% block forms %}
         {% for form in forms %}
         <div class="upload">
+            <div>Image: {{ form.originalName }}</div>
             <img src="{{ url_for('static', filename=form.dir + '/' + form.storedName)}}" alt="{{form.fileId}}">
             <form action="{{ url_for('index')}}" method="POST" enctype="multipart/form-data">
                 <input name="fileId" type="hidden" value="{{form.fileId}}">

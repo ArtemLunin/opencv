@@ -4,7 +4,9 @@ from flask import Flask, flash, render_template, url_for, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError, OperationalError, IntegrityError
 from werkzeug.utils import secure_filename
-from compare import CalcImageHash, CompareHash
+import random
+import string
+from compare import CompareIimages, CalcImageHash, CompareHash
 
 
 UPLOAD_FOLDER = "./static/uploads"
@@ -27,7 +29,8 @@ def allowed_file(filename):
 def digest_filename(filename):
     base = os.path.basename(filename)
     [name, ext] = os.path.splitext(base)
-    return hashlib.md5(name.encode()).hexdigest() + ext
+    file_prefix = ''.join(random.choice(string.digits) for i in range(4))
+    return hashlib.md5((file_prefix + name).encode()).hexdigest() + ext
 
 def remove_files(dir_name):
     for file in os.scandir(dir_name):
@@ -37,10 +40,8 @@ def remove_files(dir_name):
 def compare_images(images):
     hash1 = CalcImageHash(images[0])
     hash2 = CalcImageHash(images[1])
-    # print(hash1)
-    # print(hash2)
     return CompareHash(hash1, hash2)
-    # print(images)
+
 
 class Item(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -53,13 +54,13 @@ class Item(db.Model):
 def index():
     if request.method == "POST":
         if 'file' not in request.files:
-            flash('No file part')
+            flash('No file part', category='warning')
             return redirect(request.url)
         
         fileId = request.form['fileId']
         file = request.files['file']
         if file.filename == '':
-            flash('No selected file')
+            flash('No selected file', category='warning')
             return redirect(request.url)
         if file and allowed_file(file.filename):
             secureFilename = secure_filename(file.filename)
@@ -73,14 +74,12 @@ def index():
                 # filter_by
                 db.session.rollback()
                 upd_item = db.session.execute(db.select(Item).filter_by(fileId=fileId)).scalar_one_or_none()
-                # print(upd_item.storedName)
                 if upd_item:
                     os.remove(os.path.join(app.config['UPLOAD_FOLDER'], upd_item.storedName))
                     upd_item.originalName = secureFilename
                     upd_item.storedName = filename
                     db.session.commit()
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                # print(upd_item)
             return redirect(url_for('index'))
     if request.method == "GET":
         items = Item.query.all()
@@ -90,8 +89,8 @@ def index():
             ]
         i = 0
         for item in items:
-            # print(item.fileId, item.storedName, item.originalName)
             forms[i]['storedName'] = item.storedName
+            forms[i]['originalName'] = item.originalName
             forms[i]['fileId'] = item.fileId
             forms[i]['dir'] = 'uploads'
             i += 1
@@ -106,7 +105,7 @@ def clear():
         db.create_all()
         db.session.commit()
     except Exception as err:
-        flash(f"Unexpected {err=}, {type(err)=}")
+        flash(f"Unexpected {err=}, {type(err)=}", category='danger')
     finally:
         remove_files(app.config['UPLOAD_FOLDER'])
     return redirect(url_for('index'))
@@ -115,11 +114,19 @@ def clear():
 def compare():
     items = Item.query.all()
     images = []
+    # print(items)
+    if len(items) < 2:
+        flash(f"Nothing to compare", category='warning')
+        return redirect(url_for('index'))
+    
     for item in items:
         images.append(os.path.join(app.config['UPLOAD_FOLDER'], item.storedName))
 
-    compare_presision = compare_images(images)
-    flash(f"Images match {compare_presision} percent")
+    compare_result = compare_images(images)
+
+    flash(f"Images: {'are identical' if compare_result <5 else 'are not identical' }", category='info')
+    # compare_result = CompareIimages(images)
+    # flash(f"PIL Compare result is: {compare_result}")
     return redirect(url_for('index'))
 
 if __name__ == "__main__":
